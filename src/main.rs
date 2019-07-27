@@ -59,12 +59,23 @@ struct CreatePasteResponse {
 }
 
 fn create_paste(files: Vec<PasteFile>) -> Result<CreatePasteResponse, reqwest::Error> {
-	let res: CreatePasteResponse = Client::new()
-		.post("http://localhost:3000/api/paste")
-		.json(&CreatePasteRequest::new(files))
-		.send()?
-		.json()?;
-	Ok(res)
+	let req_payload = CreatePasteRequest::new(files);
+	let mut request = match Client::new().post("http://localhost:3000/api/paste").json(&req_payload).send() {
+		Ok(request) => request,
+		Err(e) => {
+			eprintln!("{}", "request_error");
+			return Err(e);
+		},
+	};
+	let response = match request.json() {
+		Ok(response) => response,
+		Err(e) => {
+			eprintln!("{}", "response error");
+			return Err(e);
+		},
+	};
+	println!("{:#?}", response);
+	Ok(response)
 }
 
 fn main() {
