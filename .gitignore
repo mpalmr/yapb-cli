@@ -1,2 +1,14 @@
+.DS_Store
 /target
-**/*.rs.bk
+
+.env
+.env.local
+.env.*.local
+
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
