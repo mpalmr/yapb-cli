@@ -4,7 +4,7 @@
 
 use clap::{App, Arg, SubCommand, Values};
 use reqwest::Client;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{self, BufReader};
@@ -58,24 +58,51 @@ struct CreatePasteResponse {
 	name: String,
 }
 
-fn create_paste(files: Vec<PasteFile>) -> Result<CreatePasteResponse, reqwest::Error> {
+fn create_paste_request(files: Vec<PasteFile>) -> Result<CreatePasteResponse, reqwest::Error> {
 	let req_payload = CreatePasteRequest::new(files);
-	let mut request = match Client::new().post("http://localhost:3000/api/paste").json(&req_payload).send() {
+	let mut request = match Client::new()
+		.post("http://localhost:3000/api/paste")
+		.json(&req_payload)
+		.send()
+	{
 		Ok(request) => request,
 		Err(e) => {
 			eprintln!("{}", "request_error");
 			return Err(e);
-		},
+		}
 	};
 	let response = match request.json() {
 		Ok(response) => response,
 		Err(e) => {
 			eprintln!("{}", "response error");
 			return Err(e);
-		},
+		}
 	};
 	println!("{:#?}", response);
 	Ok(response)
+}
+
+fn new_paste(file_names: Values<'_>) -> Result<(), String> {
+	let files = file_names
+		.map(|name| match PasteFile::new(name) {
+			Ok(file) => file,
+			Err(e) => {
+				eprintln!("{}", e);
+				process::exit(1);
+			}
+		})
+		.collect::<Vec<PasteFile>>();
+
+	let res = match create_paste_request(files) {
+		Ok(res) => res,
+		Err(e) => {
+			eprintln!("{}", e.to_string());
+			process::exit(1);
+		}
+	};
+
+	println!("{:?}", res);
+	Ok(())
 }
 
 fn main() {
@@ -97,25 +124,10 @@ fn main() {
 
 	match app.subcommand() {
 		("new", Some(matches)) => {
-			let file_names: Values<'_> = matches.values_of("files").unwrap();
-			let files = file_names
-				.map(|name| match PasteFile::new(name) {
-					Ok(file) => file,
-					Err(e) => {
-						eprintln!("{}", e);
-						process::exit(1);
-					}
-				})
-				.collect::<Vec<PasteFile>>();
-			let res = match create_paste(files) {
-				Ok(res) => res,
-				Err(e) => {
-					eprintln!("{}", e.to_string());
-					process::exit(1);
-				}
+			if let Err(e) = new_paste(matches.values_of("files").unwrap()) {
+				eprintln!("Error: {}", e);
+				process::exit(1);
 			};
-			println!("EYYYYY");
-			println!("{:?}", res);
 		}
 		("get", Some(matches)) => {
 			println!("{:?}", matches);
