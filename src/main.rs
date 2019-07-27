@@ -3,12 +3,14 @@
 #![warn(clippy::pedantic)]
 
 use clap::{App, Arg, SubCommand, Values};
+use reqwest::Client;
+use serde::{Serialize, Deserialize};
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{self, BufReader};
 use std::process;
 
-#[derive(Debug)]
+#[derive(Serialize, Debug)]
 struct PasteFile {
 	name: String,
 	contents: String,
@@ -40,8 +42,29 @@ impl PasteFile {
 	}
 }
 
-fn create_paste(files: &Vec<PasteFile>) {
-	println!("{:?}", files);
+#[derive(Serialize, Debug)]
+struct CreatePasteRequest {
+	files: Vec<PasteFile>,
+}
+
+impl CreatePasteRequest {
+	pub fn new(files: Vec<PasteFile>) -> Self {
+		Self { files }
+	}
+}
+
+#[derive(Deserialize, Debug)]
+struct CreatePasteResponse {
+	name: String,
+}
+
+fn create_paste(files: Vec<PasteFile>) -> Result<CreatePasteResponse, reqwest::Error> {
+	let res: CreatePasteResponse = Client::new()
+		.post("http://localhost:3000/api/paste")
+		.json(&CreatePasteRequest::new(files))
+		.send()?
+		.json()?;
+	Ok(res)
 }
 
 fn main() {
@@ -73,7 +96,15 @@ fn main() {
 					}
 				})
 				.collect::<Vec<PasteFile>>();
-			create_paste(&files);
+			let res = match create_paste(files) {
+				Ok(res) => res,
+				Err(e) => {
+					eprintln!("{}", e.to_string());
+					process::exit(1);
+				}
+			};
+			println!("EYYYYY");
+			println!("{:?}", res);
 		}
 		("get", Some(matches)) => {
 			println!("{:?}", matches);
