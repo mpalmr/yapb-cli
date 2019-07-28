@@ -4,11 +4,11 @@
 
 mod new_paste;
 
-use crate::new_paste::create;
-use clap::{App, Arg, SubCommand};
 use std::process;
+use clap::{App, Arg, SubCommand};
+use crate::new_paste::create;
 
-fn main() {
+fn run() -> Result<(), String> {
 	let app = App::new("yapb")
 		.version("0.1.0")
 		.about("YAPB CLI utility")
@@ -28,16 +28,21 @@ fn main() {
 	match app.subcommand() {
 		("new", Some(matches)) => {
 			if let Err(e) = create(matches.values_of("files").unwrap()) {
-				eprintln!("Error: {}", e);
-				process::exit(1);
+				return Err(e);
 			};
+			Ok(())
 		}
 		("get", Some(matches)) => {
 			println!("{:?}", matches);
+			Ok(())
 		}
-		_ => {
-			eprintln!("{}", app.usage());
-			process::exit(1);
-		}
+		_ => Err(app.usage().to_string()),
+	}
+}
+
+fn main() {
+	if let Err(e) = run() {
+		eprintln!("Error: {}", e);
+		process::exit(1);
 	}
 }
