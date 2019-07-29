@@ -2,6 +2,7 @@
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
 
+mod get_paste;
 mod new_paste;
 
 use clap::{App, Arg, SubCommand};
@@ -27,7 +28,8 @@ fn run() -> Result<(), Box<dyn Error>> {
 		.subcommand(
 			SubCommand::with_name("get")
 				.about("retreives a paste")
-				.arg(Arg::with_name("url").required(true)),
+				.arg(Arg::with_name("id").required(true))
+				.arg(Arg::with_name("target").default_value(".")),
 		)
 		.get_matches();
 
@@ -37,7 +39,10 @@ fn run() -> Result<(), Box<dyn Error>> {
 			Ok(())
 		}
 		("get", Some(subcmd)) => {
-			println!("{:?}", subcmd);
+			get_paste::fetch(
+				subcmd.value_of("id").unwrap(),
+				subcmd.value_of("target").unwrap(),
+			)?;
 			Ok(())
 		}
 		_ => Err(Box::from(app.usage())),
