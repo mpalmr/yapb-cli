@@ -49,13 +49,13 @@ pub fn create(file_names: Values<'_>) -> Result<(), Box<dyn Error>> {
 	{
 		Ok(files) => {
 			let res: CreatePasteResponse = Client::new()
-				.post("http://localhost:3000/api/paste")
+				.post(&format!("{}/api/paste", crate::HTTP_ORIGIN))
 				.json(&CreatePasteRequest::new(files))
 				.send()?
 				.json()?;
 			println!("https://localhost:3000/paste/{}", res.id);
 			Ok(())
-		},
+		}
 		Err(e) => Err(Box::from(e)),
 	}
 }

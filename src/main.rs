@@ -4,16 +4,21 @@
 
 mod new_paste;
 
-use crate::new_paste::create;
 use clap::{App, Arg, SubCommand};
 use std::error::Error;
 use std::process;
 
+#[cfg(debug_assertions)]
+const HTTP_ORIGIN: &str = "http://localhost:3000";
+#[cfg(not(debug_assertions))]
+const HTTP_ORIGIN: &str = "https://yapb.com";
+
 fn run() -> Result<(), Box<dyn Error>> {
-	let app = App::new("yapb")
-		.version("0.1.0")
-		.about("Yet Another Paste Bin CLI utility")
-		.author("Matthew Palmer <mspalmer91@gmail.com>")
+	println!("{}", HTTP_ORIGIN);
+	let app = App::new(env!("CARGO_PKG_NAME"))
+		.version(env!("CARGO_PKG_VERSION"))
+		.about(env!("CARGO_PKG_DESCRIPTION"))
+		.author(env!("CARGO_PKG_AUTHORS"))
 		.subcommand(
 			SubCommand::with_name("new")
 				.about("creates a new paste and returns the URL")
@@ -28,7 +33,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
 	match app.subcommand() {
 		("new", Some(subcmd)) => {
-			create(subcmd.values_of("files").unwrap())?;
+			new_paste::create(subcmd.values_of("files").unwrap())?;
 			Ok(())
 		}
 		("get", Some(subcmd)) => {
