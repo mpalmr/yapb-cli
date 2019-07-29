@@ -4,14 +4,15 @@
 
 mod new_paste;
 
-use std::process;
-use clap::{App, Arg, SubCommand};
 use crate::new_paste::create;
+use clap::{App, Arg, SubCommand};
+use std::error::Error;
+use std::process;
 
-fn run() -> Result<(), String> {
+fn run() -> Result<(), Box<dyn Error>> {
 	let app = App::new("yapb")
 		.version("0.1.0")
-		.about("YAPB CLI utility")
+		.about("Yet Another Paste Bin CLI utility")
 		.author("Matthew Palmer <mspalmer91@gmail.com>")
 		.subcommand(
 			SubCommand::with_name("new")
@@ -26,23 +27,21 @@ fn run() -> Result<(), String> {
 		.get_matches();
 
 	match app.subcommand() {
-		("new", Some(matches)) => {
-			if let Err(e) = create(matches.values_of("files").unwrap()) {
-				return Err(e);
-			};
+		("new", Some(subcmd)) => {
+			create(subcmd.values_of("files").unwrap())?;
 			Ok(())
 		}
-		("get", Some(matches)) => {
-			println!("{:?}", matches);
+		("get", Some(subcmd)) => {
+			println!("{:?}", subcmd);
 			Ok(())
 		}
-		_ => Err(app.usage().to_string()),
+		_ => Err(Box::from(app.usage()))
 	}
 }
 
 fn main() {
 	if let Err(e) = run() {
-		eprintln!("Error: {}", e);
+		eprintln!("{}", e);
 		process::exit(1);
 	}
 }
