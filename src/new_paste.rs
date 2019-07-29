@@ -3,8 +3,8 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs::File;
-use std::io::{self, BufReader};
 use std::io::prelude::*;
+use std::io::{self, BufReader};
 
 #[derive(Serialize, Debug)]
 struct PasteFile {
@@ -38,6 +38,7 @@ impl CreatePasteRequest {
 
 #[derive(Deserialize, Debug)]
 struct CreatePasteResponse {
+	id: String,
 	name: String,
 }
 
@@ -46,11 +47,15 @@ pub fn create(file_names: Values<'_>) -> Result<(), Box<dyn Error>> {
 		.map(|name| PasteFile::new(name))
 		.collect::<Result<Vec<PasteFile>, io::Error>>()
 	{
-		Ok(files) => Ok(Client::new()
-			.post("http://localhost:3000/api/paste")
-			.json(&CreatePasteRequest::new(files))
-			.send()?
-			.json()?),
+		Ok(files) => {
+			let res: CreatePasteResponse = Client::new()
+				.post("http://localhost:3000/api/paste")
+				.json(&CreatePasteRequest::new(files))
+				.send()?
+				.json()?;
+			println!("https://localhost:3000/paste/{}", res.id);
+			Ok(())
+		},
 		Err(e) => Err(Box::from(e)),
 	}
 }

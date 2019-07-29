@@ -35,7 +35,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 			println!("{:?}", subcmd);
 			Ok(())
 		}
-		_ => Err(Box::from(app.usage()))
+		_ => Err(Box::from(app.usage())),
 	}
 }
 
