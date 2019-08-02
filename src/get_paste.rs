@@ -22,16 +22,12 @@ pub fn fetch(id: &str, target: &str) -> Result<(), Box<dyn Error>> {
 	let url = format!("{}/api/paste/{}", HTTP_ORIGIN, id);
 	let paste: Paste = Client::new().get(&url).send()?.json()?;
 	let target_path = Path::new(target);
-	match paste
+	Ok(paste
 		.files
 		.iter()
 		.map(|file| {
 			File::create(target_path.join(&file.name))
 				.and_then(|mut f| f.write_all(file.contents.as_bytes()))
 		})
-		.collect::<Result<(), io::Error>>()
-	{
-		Ok(_) => Ok(()),
-		Err(e) => Err(Box::from(e)),
-	}
+		.collect::<Result<(), io::Error>>()?)
 }
