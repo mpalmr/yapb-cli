@@ -1,6 +1,13 @@
-#![warn(rust_2018_idioms)]
-#![warn(clippy::all)]
-#![warn(clippy::pedantic)]
+#![warn(
+	warnings,
+	rust_2018_idioms,
+	clippy::all,
+	clippy::complexity,
+	clippy::correctness,
+	clippy::pedantic,
+	clippy::perf,
+	clippy::style
+)]
 
 mod get_paste;
 mod login;
