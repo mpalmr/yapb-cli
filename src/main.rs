@@ -48,22 +48,19 @@ fn run() -> Result<(), Box<dyn Error>> {
 
 	match app.subcommand() {
 		("new", Some(subcmd)) => {
-			new_paste::create(subcmd.values_of("files").unwrap())?;
-			Ok(())
+			new_paste::create(subcmd.values_of("files").unwrap())
 		}
 		("get", Some(subcmd)) => {
 			get_paste::fetch(
 				subcmd.value_of("id").unwrap(),
 				subcmd.value_of("target").unwrap(),
-			)?;
-			Ok(())
+			)
 		}
 		("login", Some(subcmd)) => {
 			login::login(
 				subcmd.value_of("email").unwrap(),
 				subcmd.value_of("password").unwrap(),
-			)?;
-			Ok(())
+			)
 		}
 		_ => Err(Box::from(app.usage())),
 	}
