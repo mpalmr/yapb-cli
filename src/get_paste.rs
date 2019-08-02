@@ -7,16 +7,14 @@ use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct PasteFile {
-	id: String,
 	name: String,
 	contents: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct Paste {
-	id: String,
 	files: Vec<PasteFile>,
 }
 
