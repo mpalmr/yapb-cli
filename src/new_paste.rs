@@ -1,3 +1,4 @@
+use crate::HTTP_ORIGIN;
 use clap::Values;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -19,8 +20,8 @@ impl PasteFile {
 		let mut contents = String::new();
 		buf_reader.read_to_string(&mut contents)?;
 		Ok(Self {
-			name: name.to_string(),
 			contents,
+			name: name.to_string(),
 		})
 	}
 }
@@ -49,11 +50,11 @@ pub fn create(file_names: Values<'_>) -> Result<(), Box<dyn Error>> {
 	{
 		Ok(files) => {
 			let res: CreatePasteResponse = Client::new()
-				.post(&format!("{}/api/paste", crate::HTTP_ORIGIN))
+				.post(&format!("{}/api/paste", HTTP_ORIGIN))
 				.json(&CreatePasteRequest::new(files))
 				.send()?
 				.json()?;
-			println!("https://localhost:3000/paste/{}", res.id);
+			println!("{}/paste/{}", HTTP_ORIGIN, res.id);
 			Ok(())
 		}
 		Err(e) => Err(Box::from(e)),

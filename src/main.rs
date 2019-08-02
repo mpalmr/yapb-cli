@@ -1,7 +1,16 @@
-#![warn(rust_2018_idioms)]
-#![warn(clippy::all)]
-#![warn(clippy::pedantic)]
+#![warn(
+	warnings,
+	rust_2018_idioms,
+	clippy::all,
+	clippy::complexity,
+	clippy::correctness,
+	clippy::pedantic,
+	clippy::perf,
+	clippy::style
+)]
 
+mod get_paste;
+mod login;
 mod new_paste;
 
 use clap::{App, Arg, SubCommand};
@@ -14,20 +23,26 @@ const HTTP_ORIGIN: &str = "http://localhost:3000";
 const HTTP_ORIGIN: &str = "https://yapb.com";
 
 fn run() -> Result<(), Box<dyn Error>> {
-	println!("{}", HTTP_ORIGIN);
 	let app = App::new(env!("CARGO_PKG_NAME"))
 		.version(env!("CARGO_PKG_VERSION"))
 		.about(env!("CARGO_PKG_DESCRIPTION"))
 		.author(env!("CARGO_PKG_AUTHORS"))
 		.subcommand(
 			SubCommand::with_name("new")
-				.about("creates a new paste and returns the URL")
+				.about("Creates a new paste and returns the URL.")
 				.arg(Arg::with_name("files").required(true).multiple(true)),
 		)
 		.subcommand(
 			SubCommand::with_name("get")
-				.about("retreives a paste")
-				.arg(Arg::with_name("url").required(true)),
+				.about("Retreives a paste.")
+				.arg(Arg::with_name("id").required(true))
+				.arg(Arg::with_name("target").default_value(".")),
+		)
+		.subcommand(
+			SubCommand::with_name("login")
+				.about("Authenticates with YAPB's API.")
+				.arg(Arg::with_name("email").required(true))
+				.arg(Arg::with_name("password").required(true)),
 		)
 		.get_matches();
 
@@ -37,7 +52,17 @@ fn run() -> Result<(), Box<dyn Error>> {
 			Ok(())
 		}
 		("get", Some(subcmd)) => {
-			println!("{:?}", subcmd);
+			get_paste::fetch(
+				subcmd.value_of("id").unwrap(),
+				subcmd.value_of("target").unwrap(),
+			)?;
+			Ok(())
+		}
+		("login", Some(subcmd)) => {
+			login::login(
+				subcmd.value_of("email").unwrap(),
+				subcmd.value_of("password").unwrap(),
+			)?;
 			Ok(())
 		}
 		_ => Err(Box::from(app.usage())),
