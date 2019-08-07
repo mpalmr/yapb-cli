@@ -2,7 +2,7 @@ use crate::HTTP_ORIGIN;
 use reqwest::Client;
 use serde::Deserialize;
 use std::error::Error;
-use std::fs::File;
+use std::fs::{create_dir_all, File};
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
@@ -18,10 +18,13 @@ struct Paste {
 	files: Vec<PasteFile>,
 }
 
-pub fn fetch(id: &str, target: &str) -> Result<(), Box<dyn Error>> {
-	let url = format!("{}/api/paste/{}", HTTP_ORIGIN, id);
-	let paste: Paste = Client::new().get(&url).send()?.json()?;
-	let target_path = Path::new(target);
+pub fn fetch(id: &str, target: Option<&str>) -> Result<(), Box<dyn Error>> {
+	let paste: Paste = Client::new()
+		.get(&format!("{}/api/paste/{}", HTTP_ORIGIN, id))
+		.send()?
+		.json()?;
+	let target_path = Path::new(target.unwrap_or(id));
+	create_dir_all(target_path)?;
 	Ok(paste
 		.files
 		.iter()
