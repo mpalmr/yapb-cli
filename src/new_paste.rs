@@ -26,21 +26,10 @@ impl PasteFile {
 	}
 }
 
-#[derive(Serialize, Debug)]
-struct CreatePasteRequest {
-	files: Vec<PasteFile>,
-}
-
-impl CreatePasteRequest {
-	pub fn new(files: Vec<PasteFile>) -> Self {
-		Self { files }
-	}
-}
-
 #[derive(Deserialize, Debug)]
 struct CreatePasteResponse {
-	id: String,
-	name: String,
+	#[serde(rename = "pasteId")]
+	paste_id: String,
 }
 
 pub fn create(file_names: Values<'_>) -> Result<(), Box<dyn Error>> {
@@ -51,10 +40,10 @@ pub fn create(file_names: Values<'_>) -> Result<(), Box<dyn Error>> {
 		Ok(files) => {
 			let res: CreatePasteResponse = Client::new()
 				.post(&format!("{}/api/paste", HTTP_ORIGIN))
-				.json(&CreatePasteRequest::new(files))
+				.json(&files)
 				.send()?
 				.json()?;
-			println!("{}/paste/{}", HTTP_ORIGIN, res.id);
+			println!("{}/paste/{}", HTTP_ORIGIN, res.paste_id);
 			Ok(())
 		}
 		Err(e) => Err(Box::from(e)),

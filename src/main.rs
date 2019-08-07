@@ -20,7 +20,7 @@ use std::process;
 #[cfg(debug_assertions)]
 const HTTP_ORIGIN: &str = "http://localhost:3000";
 #[cfg(not(debug_assertions))]
-const HTTP_ORIGIN: &str = "https://yapb.com";
+const HTTP_ORIGIN: &str = "http://localhost:3000"; // Change to domain when purchased
 
 fn run() -> Result<(), Box<dyn Error>> {
 	let app = App::new(env!("CARGO_PKG_NAME"))
@@ -47,21 +47,15 @@ fn run() -> Result<(), Box<dyn Error>> {
 		.get_matches();
 
 	match app.subcommand() {
-		("new", Some(subcmd)) => {
-			new_paste::create(subcmd.values_of("files").unwrap())
-		}
-		("get", Some(subcmd)) => {
-			get_paste::fetch(
-				subcmd.value_of("id").unwrap(),
-				subcmd.value_of("target").unwrap(),
-			)
-		}
-		("login", Some(subcmd)) => {
-			login::login(
-				subcmd.value_of("email").unwrap(),
-				subcmd.value_of("password").unwrap(),
-			)
-		}
+		("new", Some(subcmd)) => new_paste::create(subcmd.values_of("files").unwrap()),
+		("get", Some(subcmd)) => get_paste::fetch(
+			subcmd.value_of("id").unwrap(),
+			subcmd.value_of("target").unwrap(),
+		),
+		("login", Some(subcmd)) => login::login(
+			subcmd.value_of("email").unwrap(),
+			subcmd.value_of("password").unwrap(),
+		),
 		_ => Err(Box::from(app.usage())),
 	}
 }
