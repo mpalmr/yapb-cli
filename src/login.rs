@@ -36,15 +36,22 @@ impl AuthenticateRequest {
 #[derive(Deserialize, Debug)]
 struct AuthenticationResponse {
 	token: String,
+	#[serde(rename = "userId")]
+	user_id: String,
+	#[serde(rename = "expiresAt")]
+	expires_at: String,
+	#[serde(rename = "createdAt")]
+	created_at: String,
 }
 
 pub fn login(email: &str) -> Result<(), Box<dyn Error>> {
 	let password = password_prompt()?;
-	let _res: AuthenticationResponse = Client::new()
-		.post(&format!("{}/api/authenticate", HTTP_ORIGIN))
+	let res: AuthenticationResponse = Client::new()
+		.post(&format!("{}/api/user/token", HTTP_ORIGIN))
 		.json(&AuthenticateRequest::new(email, &password))
 		.send()?
 		.json()?;
+	println!("{:?}", res);
 	let rc_file_path = Path::new(&home_dir().unwrap()).join(".yapbrc");
 	let _rc_file = File::open(rc_file_path)?;
 	Ok(())
