@@ -41,8 +41,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 		.subcommand(
 			SubCommand::with_name("login")
 				.about("Authenticates with YAPB's API.")
-				.arg(Arg::with_name("email").required(true))
-				.arg(Arg::with_name("password").required(true)),
+				.arg(Arg::with_name("email").required(true)),
 		)
 		.get_matches();
 
@@ -51,10 +50,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 		("get", Some(subcmd)) => {
 			get_paste::fetch(subcmd.value_of("id").unwrap(), subcmd.value_of("target"))
 		}
-		("login", Some(subcmd)) => login::login(
-			subcmd.value_of("email").unwrap(),
-			subcmd.value_of("password").unwrap(),
-		),
+		("login", Some(subcmd)) => login::login(subcmd.value_of("email").unwrap()),
 		_ => Err(Box::from(app.usage())),
 	}
 }
