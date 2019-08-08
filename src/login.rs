@@ -5,8 +5,9 @@ use rpassword::read_password_from_tty;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs::File;
-use std::io;
-use std::path::Path;
+use std::io::prelude::*;
+use std::io::{self, BufReader};
+use std::path::{Path, PathBuf};
 
 fn password_prompt() -> Result<String, io::Error> {
 	loop {
@@ -16,6 +17,10 @@ fn password_prompt() -> Result<String, io::Error> {
 		}
 		println!("Invalid password.\n");
 	}
+}
+
+fn rc_file_path() -> PathBuf {
+	Path::new(&home_dir().unwrap()).join(".yapbrc")
 }
 
 #[derive(Serialize, Debug)]
@@ -52,7 +57,25 @@ pub fn login(email: &str) -> Result<(), Box<dyn Error>> {
 		.send()?
 		.json()?;
 	println!("{:?}", res);
-	let rc_file_path = Path::new(&home_dir().unwrap()).join(".yapbrc");
-	let _rc_file = File::open(rc_file_path)?;
+	let path = rc_file_path();
+	let mut file = if path.exists() {
+		File::open(path)?
+	} else {
+		File::create(path)?
+	};
+	file.write_all(res.token.as_bytes())?;
 	Ok(())
+}
+
+pub fn get_token() -> Result<String, Box<dyn Error>> {
+	let path = rc_file_path();
+	if path.exists() {
+		let file = File::open(path)?;
+		let mut reader = BufReader::new(file);
+		let mut contents = String::new();
+		reader.read_to_string(&mut contents)?;
+		Ok(contents)
+	} else {
+		Err(Box::from("Path does not exist"))
+	}
 }

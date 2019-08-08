@@ -16,9 +16,9 @@ struct PasteFile {
 impl PasteFile {
 	pub fn new(name: &str) -> Result<Self, io::Error> {
 		let file = File::open(name)?;
-		let mut buf_reader = BufReader::new(file);
+		let mut reader = BufReader::new(file);
 		let mut contents = String::new();
-		buf_reader.read_to_string(&mut contents)?;
+		reader.read_to_string(&mut contents)?;
 		Ok(Self {
 			contents,
 			name: name.to_string(),
