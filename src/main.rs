@@ -9,8 +9,8 @@
 	clippy::style
 )]
 
+mod authentication;
 mod get_paste;
-mod login;
 mod new_paste;
 
 use clap::{App, Arg, SubCommand};
@@ -50,7 +50,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 		("get", Some(subcmd)) => {
 			get_paste::fetch(subcmd.value_of("id").unwrap(), subcmd.value_of("target"))
 		}
-		("login", Some(subcmd)) => login::login(subcmd.value_of("email").unwrap()),
+		("login", Some(subcmd)) => authentication::login(subcmd.value_of("email").unwrap()),
 		_ => Err(Box::from(app.usage())),
 	}
 }
