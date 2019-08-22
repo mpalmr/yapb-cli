@@ -12,3 +12,6 @@ target/
 *.njsproj
 *.sln
 *.sw*
+
+# Ignore all lock files for libs
+sdk/Cargo.lock
