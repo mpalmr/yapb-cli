@@ -74,15 +74,15 @@ impl RcFile {
 		}
 	}
 
-	pub fn save_token(self, token: &str) -> Result<(), io::Error> {
+	pub fn save_token(&self, token: &str) -> Result<(), io::Error> {
 		OpenOptions::new()
 			.write(true)
-			.open(self.path)?
+			.open(&self.path)?
 			.write_all(token.as_bytes())
 	}
 
-	pub fn get_token(self) -> Result<String, io::Error> {
-		let file = File::open(self.path)?;
+	pub fn get_token(&self) -> Result<String, io::Error> {
+		let file = File::open(&self.path)?;
 		let mut reader = BufReader::new(file);
 		let mut contents = String::new();
 		reader.read_to_string(&mut contents)?;

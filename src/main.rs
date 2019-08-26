@@ -13,7 +13,7 @@ mod auth;
 mod paste;
 mod subcommands;
 
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg, ArgMatches, SubCommand};
 use std::error::Error;
 use std::process;
 
@@ -22,11 +22,30 @@ const HTTP_ORIGIN: &str = "http://localhost:3000/api";
 #[cfg(not(debug_assertions))]
 const HTTP_ORIGIN: &str = "http://localhost:3000/api"; // Change to domain when purchased
 
+pub struct Cli {
+	verbose: bool,
+}
+
+impl Cli {
+	pub fn new(app: &ArgMatches<'_>) -> Self {
+		Self {
+			verbose: app.is_present("verbose"),
+		}
+	}
+
+	pub fn log(&self, message: &str) {
+		if self.verbose {
+			println!("{}", message);
+		}
+	}
+}
+
 fn run() -> Result<(), Box<dyn Error>> {
-	let app = App::new(env!("CARGO_PKG_NAME"))
+	let matches = App::new(env!("CARGO_PKG_NAME"))
 		.version(env!("CARGO_PKG_VERSION"))
 		.about(env!("CARGO_PKG_DESCRIPTION"))
 		.author(env!("CARGO_PKG_AUTHORS"))
+		.arg(Arg::with_name("verbose").short("v"))
 		.subcommand(
 			SubCommand::with_name("get")
 				.about("Retreives a paste.")
@@ -49,11 +68,12 @@ fn run() -> Result<(), Box<dyn Error>> {
 		)
 		.get_matches();
 
-	match app.subcommand() {
-		("get", Some(matches)) => subcommands::get(matches),
-		("create", Some(matches)) => subcommands::create(matches),
-		("login", Some(matches)) => subcommands::login(matches),
-		_ => Err(Box::from(app.usage())),
+	let cli = Cli::new(&matches);
+	match matches.subcommand() {
+		("get", Some(subcmd)) => subcommands::get(cli, subcmd),
+		("create", Some(subcmd)) => subcommands::create(cli, subcmd),
+		("login", Some(subcmd)) => subcommands::login(cli, subcmd),
+		_ => Err(Box::from(matches.usage())),
 	}
 }
 

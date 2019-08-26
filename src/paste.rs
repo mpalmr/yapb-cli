@@ -20,10 +20,10 @@ impl Paste {
 			.json()?)
 	}
 
-	pub fn write_to(self, out_dir: &Path) -> Result<(), io::Error> {
+	pub fn write(&self, out_dir: &Path) -> Result<(), io::Error> {
 		create_dir_all(out_dir)?;
 		self.files
-			.into_iter()
+			.iter()
 			.map(|file| file.write(out_dir))
 			.collect::<Result<(), io::Error>>()
 	}
@@ -65,7 +65,7 @@ impl File {
 		})
 	}
 
-	pub fn write(self, out_dir: &Path) -> Result<(), io::Error> {
+	pub fn write(&self, out_dir: &Path) -> Result<(), io::Error> {
 		fs::File::create(out_dir.join(&self.name))
 			.and_then(|mut file| file.write_all(self.contents.as_bytes()))
 	}

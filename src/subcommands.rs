@@ -1,45 +1,43 @@
 use crate::auth::{login_request, RcFile};
 use crate::paste::{self, Paste};
-use crate::HTTP_ORIGIN;
+use crate::{Cli, HTTP_ORIGIN};
 use clap::ArgMatches;
 use std::error::Error;
 use std::path::Path;
 
-pub fn get(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
-	println!("Fetching paste.");
+pub fn get(cli: Cli, args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
 	let paste_id = args.value_of("id").unwrap();
 	let out_dir = Path::new(args.value_of("target").unwrap_or(&paste_id));
-	match out_dir.to_str() {
-		Some(dir_text) => {
-			println!("Fetching paste...");
-			let paste = Paste::fetch(paste_id)?;
-			println!("Writing files...");
-			paste.write_to(out_dir)?;
-			println!("Paste saved to: {}", dir_text);
-			Ok(())
-		}
-		_ => Err(Box::from("Could not resolve path.")),
+	if let Some(dir_str) = out_dir.to_str() {
+		cli.log("Fetching paste...");
+		let paste = Paste::fetch(paste_id)?;
+		cli.log("Writing files...");
+		paste.write(out_dir)?;
+		println!("Paste saved to: {}", dir_str);
+		Ok(())
+	} else {
+		Err(Box::from("Could not resolve path."))
 	}
 }
 
-pub fn create(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
-	println!("Creating new paste.");
+pub fn create(cli: Cli, args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
+	cli.log("Creating new paste...");
 	let file_names = args.values_of("files").unwrap().collect::<Vec<&str>>();
-	println!("Reading files...");
+	cli.log("Reading files...");
 	let files = paste::read_files(file_names)?;
-	println!("Uploading paste...");
+	cli.log("Uploading paste...");
 	let paste = Paste::create(files)?;
 	println!("Paste created: {}/paste/{}", HTTP_ORIGIN, paste.id);
 	Ok(())
 }
 
-pub fn login(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
+pub fn login(cli: Cli, args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
 	let email = args.value_of("email").unwrap();
 	println!("Logging in as '{}'", email);
-	println!("Authenticating...");
+	cli.log("Authenticating...");
 	let res = login_request(email);
-	println!("Credentials valid, opening rc file...");
+	cli.log("Credentials valid, opening rc file...");
 	let rc_file = RcFile::new()?;
-	println!("Using '{}'", rc_file.path.to_str().unwrap());
+	cli.log(&format!("Using '{}'", rc_file.path.to_str().unwrap()));
 	Ok(())
 }
