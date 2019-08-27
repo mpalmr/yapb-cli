@@ -48,22 +48,28 @@ fn run() -> Result<(), Box<dyn Error>> {
 		.arg(Arg::with_name("verbose").short("v"))
 		.subcommand(
 			SubCommand::with_name("get")
-				.about("Retreives a paste.")
-				.arg(Arg::with_name("id").required(true))
-				.arg(Arg::with_name("target")),
+				.about("Retreives a paste")
+				.arg(Arg::with_name("id").required(true).help("Paste ID"))
+				.arg(Arg::with_name("target").help("Location to download paste to")),
 		)
 		.subcommand(
 			SubCommand::with_name("create")
-				.about("Creates a new paste and returns the URL.")
-				.arg(Arg::with_name("files").required(true).multiple(true)),
+				.about("Creates a new paste and returns the URL")
+				.arg(
+					Arg::with_name("files")
+						.required(true)
+						.multiple(true)
+						.help("Glob patterns for matching files to be included in paste"),
+				),
 		)
 		.subcommand(
 			SubCommand::with_name("login")
-				.about("Authenticates with YAPB's API.")
+				.about("Authenticates with YAPB's API")
 				.arg(
 					Arg::with_name("email")
 						.required(true)
-						.case_insensitive(true),
+						.case_insensitive(true)
+						.help("Email associated with your YAPB account"),
 				),
 		)
 		.get_matches();

@@ -2,8 +2,9 @@ use crate::auth::{login_request, RcFile};
 use crate::paste::{self, Paste};
 use crate::{Cli, HTTP_ORIGIN};
 use clap::ArgMatches;
+use glob::glob;
 use std::error::Error;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub fn get(cli: Cli, args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
 	let paste_id = args.value_of("id").unwrap();
@@ -20,11 +21,29 @@ pub fn get(cli: Cli, args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
 	}
 }
 
-pub fn create(cli: Cli, args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
+struct CreateArgs {
+	src_paths: Vec<PathBuf>,
+}
+
+impl CreateArgs {
+	pub fn new(matches: &ArgMatches<'_>) -> Self {
+		Self {
+			src_paths: matches
+				.values_of("files")
+				.unwrap()
+				.flat_map(|pattern| glob(pattern).unwrap())
+				.filter_map(Result::ok)
+				.map(|path| path.to_path_buf())
+				.collect::<Vec<PathBuf>>(),
+		}
+	}
+}
+
+pub fn create(cli: Cli, matches: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
 	cli.log("Creating new paste...");
-	let file_names = args.values_of("files").unwrap().collect::<Vec<&str>>();
+	let args = CreateArgs::new(matches);
 	cli.log("Reading files...");
-	let files = paste::read_files(file_names)?;
+	let files = paste::read_files(args.file_names)?;
 	cli.log("Uploading paste...");
 	let paste = Paste::create(files)?;
 	println!("Paste created: {}/paste/{}", HTTP_ORIGIN, paste.id);
