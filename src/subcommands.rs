@@ -33,7 +33,6 @@ impl CreateArgs {
 				.unwrap()
 				.flat_map(|pattern| glob(pattern).unwrap())
 				.filter_map(Result::ok)
-				.map(|path| path.to_path_buf())
 				.collect::<Vec<PathBuf>>(),
 		}
 	}
@@ -43,7 +42,7 @@ pub fn create(cli: Cli, matches: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> 
 	cli.log("Creating new paste...");
 	let args = CreateArgs::new(matches);
 	cli.log("Reading files...");
-	let files = paste::read_files(args.file_names)?;
+	let files = paste::read_files(&args.src_paths)?;
 	cli.log("Uploading paste...");
 	let paste = Paste::create(files)?;
 	println!("Paste created: {}/paste/{}", HTTP_ORIGIN, paste.id);

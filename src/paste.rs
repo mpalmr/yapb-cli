@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fs::{self, create_dir_all};
 use std::io::prelude::*;
 use std::io::{self, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Deserialize)]
 pub struct Paste {
@@ -71,9 +71,10 @@ impl File {
 	}
 }
 
-pub fn read_files(file_names: Vec<&str>) -> Result<Vec<File>, io::Error> {
-	file_names
+pub fn read_files(src_paths: &[PathBuf]) -> Result<Vec<File>, io::Error> {
+	src_paths
 		.iter()
-		.map(|name| File::read(name))
+		.filter_map(|path| path.file_name())
+		.map(|name| File::read(&name.to_str().unwrap()))
 		.collect::<Result<Vec<File>, io::Error>>()
 }
